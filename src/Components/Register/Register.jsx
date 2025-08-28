@@ -1,16 +1,23 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  updateProfile,
+} from "firebase/auth";
 import auth from "../../../firebase.init";
 import { useState } from "react";
-import {FaRegEyeSlash, FaEye } from "react-icons/fa";
+import { FaRegEyeSlash, FaEye } from "react-icons/fa";
 
 const Register = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [showPass, setShowPass] = useState(false)
+  const [showPass, setShowPass] = useState(false);
   const handleRegistation = (event) => {
     event.preventDefault();
     const email = event.target.email.value;
     const password = event.target.password.value;
+    const name = event.target.name.value;
+    const photoUrl = event.target.photoUrl.value;
+    console.log(name , photoUrl);
     setErrorMsg("");
     setSuccessMsg("");
     const regex =
@@ -26,6 +33,22 @@ const Register = () => {
       .then((userCredential) => {
         console.log(userCredential.user);
         setSuccessMsg("Registation Successful");
+
+        updateProfile(auth.currentUser, {
+          displayName:  name ,
+          photoURL:  photoUrl,
+        })
+          .then(() => {
+            // Profile updated!
+            // ...
+          })
+          .catch((error) => {
+            // An error occurred
+            console.log(error.message);
+            // ...
+          });
+
+        sendEmailVerification(auth.currentUser).then(() => {});
       })
       .catch((error) => {
         setErrorMsg(error.message);
@@ -36,6 +59,22 @@ const Register = () => {
     <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
       <div className="card-body">
         <form onSubmit={handleRegistation} className="fieldset">
+          <div>
+            <label className="label">Name</label>
+            <input
+              type="text"
+              className="input"
+              name="name"
+              placeholder="Name"
+            />
+            <label className="label">Photo Url</label>
+            <input
+              type="text"
+              className="input"
+              name="photoUrl"
+              placeholder="Photo Url"
+            />
+          </div>
           <label className="label">Email</label>
           <input
             type="email"
@@ -51,12 +90,12 @@ const Register = () => {
               name="password"
               placeholder="Password"
             />
-            <button onClick={()=>setShowPass(!showPass)} className="absolute top-4 right-7">
-                {showPass ? <FaRegEyeSlash /> : <FaEye />}
+            <button
+              onClick={() => setShowPass(!showPass)}
+              className="absolute top-4 right-7"
+            >
+              {showPass ? <FaRegEyeSlash /> : <FaEye />}
             </button>
-          </div>
-          <div>
-            <a className="link link-hover">Forgot password?</a>
           </div>
           <button className="btn btn-neutral mt-4">Login</button>
           {errorMsg && <p className="text-red-500">{errorMsg}</p>}
